@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.eshequ.gatherservice.mapper.LiquidateMapper">
+    <resultMap id="BaseResultMap" type="com.eshequ.gatherservice.service.liquidate.vo.Mch_info">
+        <result column="mch_id" jdbcType="VARCHAR" property="mch_id" />
+        <result column="secret" jdbcType="VARCHAR" property="secret" />
+        <result column="acct_date" jdbcType="VARCHAR" property="acct_date" />
+    </resultMap>
+    <select id="getLiquidateMch" resultMap="BaseResultMap">
+        select
+        distinct mch.mch_info_id, mch.mch_id, mch.secret, water.acct_date
+        from sp_serve_trade_mch_info mch
+        join sp_serve_bill_pay_trade trade on mch.trade_water_id = trade.trade_water_id
+        join sp_serve_fee_water water on trade.trade_water_id = water.trade_water_id and water.trade_water_id = mch.trade_water_id
+        where trade.plat_channel = #{plat_channel} and water.acct_date <![CDATA[<=]]> #{liquidate_date} and trade.merger_status="02" and trade.pay_method in
+        <foreach collection="payMethods" item="payMethod" index="index" open="(" close=")" separator=",">
+            #{payMethod}
+        </foreach>
+    </select>
+
+    <select id="getTradeByVoucherNo" resultType="String">
+        select a.trade_water_id from sp_serve_outside_trade_contrast a
+        join sp_serve_fee_water b on a.trade_water_id = b.trade_water_id
+        where a.voucher_no = #{voucher_no}
+    </select>
+</mapper>
